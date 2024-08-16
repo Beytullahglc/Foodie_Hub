@@ -11,7 +11,7 @@ class Adres extends StatefulWidget {
 
 class _AdresState extends State<Adres> {
   late GoogleMapController _mapController;
-  LatLng _selectedLocation = LatLng(38.6817, 39.2194); // Elazığ konumu
+  LatLng _selectedLocation = const LatLng(38.6817, 39.2194); // Elazığ konumu
   String adres = "";
 
   @override
@@ -49,7 +49,7 @@ class _AdresState extends State<Adres> {
               onTap: _onMapTapped,
               markers: {
                 Marker(
-                  markerId: MarkerId("selected_location"),
+                  markerId: const MarkerId("selected_location"),
                   position: _selectedLocation,
                 ),
               },
@@ -69,7 +69,7 @@ class _AdresState extends State<Adres> {
                 // Adresi kaydetme işlevini burada tanımlayabilirsiniz.
                 Navigator.pop(context, adres); // Adres bilgisini döndür
               },
-              child: Text("Kaydet", style: TextStyle(color: Colors.white),),
+              child: const Text("Kaydet", style: TextStyle(color: Colors.white),),
             ),
           ),
         ],

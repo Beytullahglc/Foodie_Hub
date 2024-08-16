@@ -1,8 +1,20 @@
+import 'dart:collection';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foodie_hub/cubits/sepetCubit.dart';
+import 'package:foodie_hub/cubits/urunlerCubit.dart';
+import 'package:foodie_hub/firebase_options.dart';
 import 'package:foodie_hub/views/sayfalar.dart';
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -12,15 +24,25 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return MultiBlocProvider(
+      providers: [
+          BlocProvider<UrunlerCubit>(
+            create: (context) => UrunlerCubit(),
+          ),
+          BlocProvider<SepetCubit>(
+            create: (context) => SepetCubit(),
+          ),
+      ],
+      child: MaterialApp(
+        title: '',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const MyHomePage(title: ''),
       ),
-      home: const MyHomePage(title: ''),
     );
   }
 }
@@ -39,9 +61,36 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   late AnimationController iconKontrol;
   late Animation<double> iconAnimasyonDegerleri;
 
+  var refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
+  var refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
+
+  Future<void> urunEkle() async{
+    var bilgi = HashMap<String,dynamic>();
+    bilgi["urunId"] = "";
+    bilgi["urunFiyat"] = 120;
+    bilgi["urunAd"] = "Döner";
+    bilgi["favoriMi"] = true;
+    bilgi["urunStok"] = 100;
+    bilgi["urunResim"] = "";
+
+    refUrunler.push().set(bilgi);
+  }
+
+  Future<void> sepetEkle() async{
+    var bilgi = HashMap<String,dynamic>();
+    bilgi["sepetId"] = "";
+    bilgi["urunAd"] = "Döner";
+    bilgi["sepetAdeti"] = 2;
+
+    refSepet.push().set(bilgi);
+  }
+
   @override
   void initState() {
     super.initState();
+
+    //urunEkle();
+    //sepetEkle();
 
     iconKontrol = AnimationController(
       duration: const Duration(milliseconds: 1000),

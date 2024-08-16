@@ -20,7 +20,7 @@ class _SayfalarState extends State<Sayfalar> {
     const SiparisSayfa(),
     const SepetSayfa(),
     const UrunlerSayfa(),
-    const FavoriSayfa(),
+    const FavorilerSayfa(),
     const Ayarlar()
   ];
 
