@@ -3,5 +3,5 @@ class Kullanici{
   String ePosta;
   String sifre;
 
-  Kullanici(this.kullaniciId, this.ePosta, this.sifre);
+  Kullanici({required this.kullaniciId, required this.ePosta, required this.sifre});
 }

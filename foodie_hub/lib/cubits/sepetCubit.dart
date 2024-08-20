@@ -1,11 +1,12 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foodie_hub/entity/sepet.dart';
 import 'package:foodie_hub/entity/urunler.dart';
 import 'package:foodie_hub/repo/urunlerdao_repository.dart';
 
-class SepetCubit extends Cubit<List<Urunler>>{
+class SepetCubit extends Cubit<List<Sepet>>{
 
-  SepetCubit () : super (<Urunler>[]);
+  SepetCubit () : super (<Sepet>[]);
 
   final UrunlerDaoRepository urepo = UrunlerDaoRepository();
   final refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
@@ -13,17 +14,47 @@ class SepetCubit extends Cubit<List<Urunler>>{
   final refSiparisler = FirebaseDatabase.instance.ref().child("siparisler_tablo");
 
   Future<void> sepeteEkle(Urunler urun, int adet) async {
-    var bilgi = <String, dynamic>{
+    var bilgi = <dynamic, dynamic>{
       "urunId": urun.urunId,
       "urunFiyat": urun.urunFiyat,
       "urunAd": urun.urunAd,
       "favoriMi": urun.favoriMi,
       "urunStok": urun.urunStok,
       "urunResim": urun.urunResim,
-      "adet": adet,
+      "sepetAdeti": adet,
+      "sepetId" : "",
     };
 
-    await refSepet.child(urun.urunId).set(bilgi);
+    await refSepet.push().set(bilgi);
+
+  }
+
+
+  Future<void> sepetiYukle() async {
+    final DatabaseReference sepetRef = FirebaseDatabase.instance.ref().child('sepet_tablo');
+    final DatabaseEvent event = await sepetRef.once();
+
+    final List<Sepet> loadedUrunler = [];
+    final DataSnapshot snapshot = event.snapshot;
+    final sepetMap = snapshot.value as Map<dynamic, dynamic>?;
+
+    if (sepetMap != null) {
+      sepetMap.forEach((key, value) {
+        final urun = Sepet.fromJson(key ,value);
+        loadedUrunler.add(urun);
+      });
+    }
+
+    emit(loadedUrunler); // Verileri state'e emit ediyoruz
+  }
+
+  Future<void> sepettenKaldir(String sepetId) async {
+    try {
+      await refSepet.child(sepetId).remove();
+      sepetiYukle();
+    } catch (e) {
+      print("Error removing item from sepet: $e");
+    }
   }
 
   // Sepetteki Ürünleri Sipariş Verme Metodu

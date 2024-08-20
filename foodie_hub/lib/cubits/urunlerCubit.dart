@@ -10,28 +10,34 @@ class UrunlerCubit extends Cubit<List<Urunler>> {
   final refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
 
   Future<void> favoriDurumunuDegistir(String urunId, bool yeniDurum) async {
-    // Map'i doğru bir şekilde başlatıyoruz
     var bilgi = <String, dynamic>{};
     bilgi["favoriMi"] = yeniDurum;
 
-    // Firebase veritabanında güncelleme yapıyoruz
-    await refUrunler.child(urunId).update(bilgi);
+    try {
+      await refUrunler.child(urunId).update(bilgi);
+    } catch (e) {
+      print("Favori durumu değiştirilemedi: $e");
+    }
   }
-
 
   Future<void> urunleriYukle() async {
     try {
       final snapshot = await refUrunler.once();
-      final gelenDegerler = snapshot.snapshot.value as Map<dynamic, dynamic>;
+      final gelenDegerler = snapshot.snapshot.value;
 
-      final urunListesi = gelenDegerler.entries
-          .map((entry) => Urunler.fromJson(entry.key, entry.value))
-          .toList();
+      if (gelenDegerler != null && gelenDegerler is Map<dynamic, dynamic>) {
+        final urunListesi = gelenDegerler.entries
+            .map((entry) => Urunler.fromJson(entry.key, entry.value))
+            .toList();
 
-      emit(urunListesi);
+        emit(urunListesi);
+      } else {
+        emit([]);
+        print("Beklenmeyen veri formatı: $gelenDegerler");
+      }
     } catch (e) {
-      // Hata durumunda uygun bir işlem yap (örneğin, kullanıcıya hata mesajı göster)
-      print('Hata oluştu: $e');
+      print('Ürünler yüklenirken hata oluştu: $e');
+      emit([]);
     }
   }
 }

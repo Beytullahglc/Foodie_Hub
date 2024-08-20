@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/cubits/urunlerCubit.dart';
 import 'package:foodie_hub/entity/urunler.dart';
+import 'package:foodie_hub/views/urunDetaySayfa.dart';
 
 class FavorilerSayfa extends StatefulWidget {
   const FavorilerSayfa({super.key});
@@ -64,63 +65,68 @@ class _FavorilerSayfaState extends State<FavorilerSayfa> {
               itemCount: urunListesi.length,
               itemBuilder: (context, index) {
                 var urun = urunListesi[index];
-                return Card(
-                  color: Colors.white,
-                  shadowColor: Colors.orange,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Spacer(),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: IconButton(
-                              color: Colors.orange,
-                              icon: urun.favoriMi
-                                  ? const Icon(Icons.favorite)
-                                  : const Icon(Icons.favorite_outline),
-                              onPressed: () {
-                                var cubit = BlocProvider.of<UrunlerCubit>(context);
-                                cubit.favoriDurumunuDegistir(urun.urunId, !urun.favoriMi);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-                        child: SizedBox(
-                          height: 150,
-                          child: Image.asset(
-                            urun.urunResim,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(Icons.error);
-                            },
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Row(
+                return GestureDetector(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> UrunDetaySayfa(urun: urun)));
+                  },
+                  child: Card(
+                    color: Colors.white,
+                    shadowColor: Colors.orange,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              urun.urunAd,
-                              style: const TextStyle(
-                                  fontSize: 17, color: Colors.orange),
-                            ),
                             const Spacer(),
-                            Text(
-                              "${urun.urunFiyat} TL",
-                              style: const TextStyle(
-                                  fontSize: 15, color: Colors.orange),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: IconButton(
+                                color: Colors.orange,
+                                icon: urun.favoriMi
+                                    ? const Icon(Icons.favorite)
+                                    : const Icon(Icons.favorite_outline),
+                                onPressed: () {
+                                  var cubit = BlocProvider.of<UrunlerCubit>(context);
+                                  cubit.favoriDurumunuDegistir(urun.urunId, !urun.favoriMi);
+                                },
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+                          child: SizedBox(
+                            height: 150,
+                            child: Image.asset(
+                              urun.urunResim,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.error);
+                              },
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Row(
+                            children: [
+                              Text(
+                                urun.urunAd,
+                                style: const TextStyle(
+                                    fontSize: 17, color: Colors.orange),
+                              ),
+                              const Spacer(),
+                              Text(
+                                "${urun.urunFiyat} TL",
+                                style: const TextStyle(
+                                    fontSize: 15, color: Colors.orange),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

@@ -1,12 +1,14 @@
 import 'dart:collection';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/cubits/sepetCubit.dart';
+import 'package:foodie_hub/cubits/siparisCubit.dart';
 import 'package:foodie_hub/cubits/urunlerCubit.dart';
 import 'package:foodie_hub/firebase_options.dart';
+import 'package:foodie_hub/service/auth.dart';
 import 'package:foodie_hub/views/sayfalar.dart';
 
 
@@ -32,6 +34,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<SepetCubit>(
             create: (context) => SepetCubit(),
           ),
+        BlocProvider<SiparisCubit>(
+          create: (context) => SiparisCubit(),
+        ),
       ],
       child: MaterialApp(
         title: '',
@@ -63,17 +68,30 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   var refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
   var refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
+  var refSiparis = FirebaseDatabase.instance.ref().child("siparisler_tablo");
 
-  Future<void> urunEkle() async{
-    var bilgi = HashMap<String,dynamic>();
-    bilgi["urunId"] = "";
-    bilgi["urunFiyat"] = 120;
-    bilgi["urunAd"] = "Döner";
-    bilgi["favoriMi"] = true;
-    bilgi["urunStok"] = 100;
-    bilgi["urunResim"] = "";
+  bool isLogin = true;
+  String? errorMessage;
 
-    refUrunler.push().set(bilgi);
+  Future<void> createUser() async{
+    try{
+      await Auth().createUser(email: emailController.text, password: passwordController.text);
+    }on FirebaseAuthException catch(e){
+      setState(() {
+        errorMessage = e.message;
+      });
+    }
+  }
+
+  Future<void> signIn(BuildContext context) async{
+    try{
+      await Auth().signIn(email: emailController.text, password: passwordController.text);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Sayfalar()));
+    }on FirebaseAuthException catch(e){
+      setState(() {
+        errorMessage = e.message;
+      });
+    }
   }
 
   Future<void> sepetEkle() async{
@@ -85,12 +103,45 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     refSepet.push().set(bilgi);
   }
 
+  Future<void> siparisEkle() async {
+    final refSiparis = FirebaseDatabase.instance.ref().child("siparisler_tablo");
+
+    // Sipariş detaylarını tanımlayın
+    var siparisBilgisi = <String, dynamic>{
+      "siparisId": "", // Firebase tarafından otomatik atanacak
+      "urunler": [
+        {
+          "urunAd": "Döner",
+          "adet": 2,
+          "fiyat": 50,
+        },
+        {
+          "urunAd": "Pide",
+          "adet": 1,
+          "fiyat": 30,
+        }
+      ],
+      "toplamTutar": 130,
+      "siparisTarihi": DateTime.now().toString(),
+    };
+
+    // Veriyi Firebase'e ekleyin
+    await refSiparis.push().set(siparisBilgisi);
+  }
+
+
+  @override
+  void dispose() {
+    iconKontrol.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
 
-    //urunEkle();
     //sepetEkle();
+    //siparisEkle();
 
     iconKontrol = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -134,7 +185,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                 width: ekranGenisligi * 4 / 5,
                 child: TextField(
                   keyboardType: TextInputType.emailAddress,
-                  controller: passwordController,
+                  controller: emailController,
                   decoration: const InputDecoration(
                     hintText: "e Mail",
                     hintStyle: TextStyle(color: Colors.orange),
@@ -176,6 +227,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
               ),
             ),
 
+            errorMessage != null ? Text(errorMessage!) : const SizedBox.shrink(),
+
             Padding(
               padding: const EdgeInsets.only(top: 40, bottom: 10),
               child: SizedBox(
@@ -184,32 +237,25 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
                   ),
-                  child: const Text("Giriş Yap",style: TextStyle(color: Colors.white),),
+                  child: isLogin? const Text("Giriş Yap",style: TextStyle(color: Colors.white),)
+                      : const Text("Kayıt Ol",style: TextStyle(color: Colors.white)),
                   onPressed: (){
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Sayfalar()));
+                    if(isLogin){
+                      signIn(context);
+                    }else{
+                      createUser();
+                    }
                   },
                 ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  child: const Text("Kayıt Ol", style: TextStyle(color: Colors.orange),),
-                  onPressed: (){
-
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
-                    child: const Text("Şifremi Unuttum", style: TextStyle(color: Colors.orange),),
-                    onPressed: (){
-
-                    },
-                  ),
-                ),
-              ],
+            TextButton(
+              child: const Text("Kayıt Ol", style: TextStyle(color: Colors.orange),),
+              onPressed: (){
+                setState(() {
+                  isLogin = !isLogin;
+                });
+              },
             ),
 
           ],

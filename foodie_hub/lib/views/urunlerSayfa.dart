@@ -74,12 +74,11 @@ class _UrunlerSayfaState extends State<UrunlerSayfa> {
       body: StreamBuilder<DatabaseEvent>(
         stream: refUrunler.onValue,
         builder: (context, snapshot) {
-
           if (snapshot.hasData) {
             var urunListesi = <Urunler>[];
             var gelenDegerler = snapshot.data!.snapshot.value;
 
-
+            // Gelen veriyi kontrol ediyoruz
             if (gelenDegerler is Map) {
               (gelenDegerler).forEach((key, nesne) {
                 // Verinin JSON formatında olduğunu varsayıyoruz
@@ -87,6 +86,7 @@ class _UrunlerSayfaState extends State<UrunlerSayfa> {
                 urunListesi.add(gelenUrun);
               });
 
+              // Arama sonucu varsa filtreleme yapıyoruz
               if (aramaSonucu.isNotEmpty) {
                 urunListesi = urunListesi.where((urun) {
                   return urun.urunAd
@@ -180,6 +180,7 @@ class _UrunlerSayfaState extends State<UrunlerSayfa> {
           }
         },
       ),
+
     );
   }
 }

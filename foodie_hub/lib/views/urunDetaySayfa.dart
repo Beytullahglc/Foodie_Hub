@@ -1,6 +1,7 @@
-import 'dart:collection';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foodie_hub/cubits/sepetCubit.dart';
 import 'package:foodie_hub/entity/urunler.dart';
 
 class UrunDetaySayfa extends StatefulWidget {
@@ -13,21 +14,15 @@ class UrunDetaySayfa extends StatefulWidget {
 
 class _UrunDetaySayfaState extends State<UrunDetaySayfa> {
   final DatabaseReference refSiparisler =
-  FirebaseDatabase.instance.ref().child("siparisler_tablo");
+  FirebaseDatabase.instance.ref().child("sepet_tablo");
 
   final TextEditingController adetController = TextEditingController();
 
-  Future<void> siparisEkle() async {
-    var bilgi = HashMap<String, dynamic>();
-    bilgi["urunAdi"] = widget.urun.urunAd;
-    bilgi["siparisAdeti"] = int.parse(adetController.text); // Değeri al
-    await refSiparisler.push().set(bilgi); // await ekle
-    _showSnackBar(); // SnackBar göster
-  }
+
 
   void _showSnackBar() {
     const snackBar = SnackBar(
-      content: Text('Siparişiniz başarıyla verildi!'),
+      content: Text('Ürün Sepete Eklendi!'),
       backgroundColor: Colors.green,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -70,7 +65,7 @@ class _UrunDetaySayfaState extends State<UrunDetaySayfa> {
                         10.0), // Görüntünün köşe yuvarlaklığı
                     child: Image.asset(
                       widget.urun.urunResim, // Görüntünün yolunu belirtin
-                      width: ekranGenisligi * 3 / 4,
+                      width: ekranGenisligi * 4 / 7,
                       fit: BoxFit.cover, // Görüntüyü boyutlandırma modu
                     ),
                   ),
@@ -141,7 +136,9 @@ class _UrunDetaySayfaState extends State<UrunDetaySayfa> {
                   backgroundColor: Colors.orange,
                 ),
                   onPressed: () {
-                    siparisEkle();
+                    var cubit = BlocProvider.of<SepetCubit>(context);
+                    cubit.sepeteEkle(widget.urun, int.parse(adetController.text));
+                    _showSnackBar();
                   },
                   child: const Text(
                     "Sepete Ekle",
