@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foodie_hub/cubits/adresCubit.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 
-class Adres extends StatefulWidget {
-  const Adres({super.key});
+class AdresSayfa extends StatefulWidget {
+  const AdresSayfa({super.key});
 
   @override
-  State<Adres> createState() => _AdresState();
+  State<AdresSayfa> createState() => _AdresSayfaState();
 }
 
-class _AdresState extends State<Adres> {
+class _AdresSayfaState extends State<AdresSayfa> {
   late GoogleMapController _mapController;
   LatLng _selectedLocation = const LatLng(38.6817, 39.2194); // Elazığ konumu
   String adres = "";
@@ -18,14 +20,14 @@ class _AdresState extends State<Adres> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:const Text(
+        title: const Text(
           'Adres Seçici',
           style: TextStyle(color: Colors.black),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.deepOrange, Colors.orange ,Colors.orangeAccent], // Gradient renkleri
+              colors: [Colors.deepOrange, Colors.orange, Colors.orangeAccent],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -63,10 +65,10 @@ class _AdresState extends State<Adres> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange
+                  backgroundColor: Colors.orange
               ),
               onPressed: () {
-                // Adresi kaydetme işlevini burada tanımlayabilirsiniz.
+                context.read<AdresCubit>().adresiGuncelle("04ou6HHK8pNI9nWyz5o", adres);
                 Navigator.pop(context, adres); // Adres bilgisini döndür
               },
               child: const Text("Kaydet", style: TextStyle(color: Colors.white),),
@@ -91,6 +93,3 @@ class _AdresState extends State<Adres> {
     }
   }
 }
-
-
-//AIzaSyBp5UVsPdkrRooFSVS2n579RCKNXMV4xkQ

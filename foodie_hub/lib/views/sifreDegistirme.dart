@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:foodie_hub/views/sayfalar.dart';
 
@@ -35,6 +36,43 @@ class _SifreDegistirmeState extends State<SifreDegistirme>
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController passwordAgainController = TextEditingController();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _sifreDegistir() async {
+    try {
+      String email = emailController.text.trim();
+      String password = passwordController.text.trim();
+      String passwordAgain = passwordAgainController.text.trim();
+
+      if (password == passwordAgain) {
+        User? user = _auth.currentUser;
+
+        if (user != null) {
+          await user.updatePassword(password);
+          // Başarılı mesajı gösterebilirsiniz
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Şifre başarıyla güncellendi')),
+          );
+        } else {
+          // Kullanıcı giriş yapmamışsa, hata mesajı gösterin
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Kullanıcı oturumu bulunamadı')),
+          );
+        }
+      } else {
+        // Şifreler uyuşmuyorsa, hata mesajı gösterin
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Şifreler uyuşmuyor')),
+        );
+      }
+    } catch (e) {
+      // Hata durumunda mesaj gösterin
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Şifre güncelleme hatası: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var ekranBilgisi = MediaQuery.of(context);
@@ -59,7 +97,7 @@ class _SifreDegistirmeState extends State<SifreDegistirme>
                   width: ekranGenisligi * 4 / 5,
                   child: TextField(
                     keyboardType: TextInputType.emailAddress,
-                    controller: passwordController,
+                    controller: emailController,
                     decoration: const InputDecoration(
                       hintText: "e-Posta",
                       hintStyle: TextStyle(color: Colors.orange),
@@ -134,10 +172,12 @@ class _SifreDegistirmeState extends State<SifreDegistirme>
                       "Kaydet",
                       style: TextStyle(color: Colors.white),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      await _sifreDegistir();
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => const Sayfalar()),
+                        MaterialPageRoute(
+                            builder: (context) => const Sayfalar()),
                       );
                     },
                   ),

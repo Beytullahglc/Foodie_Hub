@@ -1,12 +1,10 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/entity/urunler.dart';
-import 'package:foodie_hub/repo/urunlerdao_repository.dart';
 
 class UrunlerCubit extends Cubit<List<Urunler>> {
   UrunlerCubit() : super(<Urunler>[]);
 
-  final UrunlerDaoRepository urepo = UrunlerDaoRepository();
   final refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
 
   Future<void> favoriDurumunuDegistir(String urunId, bool yeniDurum) async {

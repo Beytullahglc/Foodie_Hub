@@ -2,13 +2,11 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/entity/sepet.dart';
 import 'package:foodie_hub/entity/urunler.dart';
-import 'package:foodie_hub/repo/urunlerdao_repository.dart';
 
 class SepetCubit extends Cubit<List<Sepet>>{
 
   SepetCubit () : super (<Sepet>[]);
 
-  final UrunlerDaoRepository urepo = UrunlerDaoRepository();
   final refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
   final refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
   final refSiparisler = FirebaseDatabase.instance.ref().child("siparisler_tablo");

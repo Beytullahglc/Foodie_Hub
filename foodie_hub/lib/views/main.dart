@@ -1,9 +1,9 @@
-import 'dart:collection';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:foodie_hub/cubits/adresCubit.dart';
 import 'package:foodie_hub/cubits/sepetCubit.dart';
 import 'package:foodie_hub/cubits/siparisCubit.dart';
 import 'package:foodie_hub/cubits/urunlerCubit.dart';
@@ -34,6 +34,10 @@ class MyApp extends StatelessWidget {
           BlocProvider<SepetCubit>(
             create: (context) => SepetCubit(),
           ),
+        BlocProvider<AdresCubit>(
+          create: (context) => AdresCubit(),
+        ),
+
         BlocProvider<SiparisCubit>(
           create: (context) => SiparisCubit(),
         ),
@@ -69,6 +73,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   var refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
   var refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
   var refSiparis = FirebaseDatabase.instance.ref().child("siparisler_tablo");
+  var refAdresler = FirebaseDatabase.instance.ref().child("adresler");
+
 
   bool isLogin = true;
   String? errorMessage;
@@ -94,40 +100,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> sepetEkle() async{
-    var bilgi = HashMap<String,dynamic>();
-    bilgi["sepetId"] = "";
-    bilgi["urunAd"] = "Döner";
-    bilgi["sepetAdeti"] = 2;
-
-    refSepet.push().set(bilgi);
-  }
-
-  Future<void> siparisEkle() async {
-    final refSiparis = FirebaseDatabase.instance.ref().child("siparisler_tablo");
-
-    // Sipariş detaylarını tanımlayın
-    var siparisBilgisi = <String, dynamic>{
-      "siparisId": "", // Firebase tarafından otomatik atanacak
-      "urunler": [
-        {
-          "urunAd": "Döner",
-          "adet": 2,
-          "fiyat": 50,
-        },
-        {
-          "urunAd": "Pide",
-          "adet": 1,
-          "fiyat": 30,
-        }
-      ],
-      "toplamTutar": 130,
-      "siparisTarihi": DateTime.now().toString(),
-    };
-
-    // Veriyi Firebase'e ekleyin
-    await refSiparis.push().set(siparisBilgisi);
-  }
 
 
   @override
@@ -139,9 +111,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    //sepetEkle();
-    //siparisEkle();
 
     iconKontrol = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -180,7 +149,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: const EdgeInsets.all(10.0),
               child: SizedBox(
                 width: ekranGenisligi * 4 / 5,
                 child: TextField(
@@ -204,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             ),
 
             Padding(
-              padding: const EdgeInsets.all(15.0),
+              padding: const EdgeInsets.all(10.0),
               child: SizedBox(
                 width: ekranGenisligi * 4 / 5,
                 child: TextField(
@@ -230,7 +199,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             errorMessage != null ? Text(errorMessage!) : const SizedBox.shrink(),
 
             Padding(
-              padding: const EdgeInsets.only(top: 40, bottom: 10),
+              padding: const EdgeInsets.only(top: 30, bottom: 9),
               child: SizedBox(
                 width: 120,
                 child: ElevatedButton(

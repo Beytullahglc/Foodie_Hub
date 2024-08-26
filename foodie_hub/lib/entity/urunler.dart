@@ -26,7 +26,7 @@ class Urunler {
     );
   }
 
-  Map<String, dynamic> toJson() {
+  Map<dynamic, dynamic> toJson() {
     return {
       "urunId": urunId,
       "urunFiyat": urunFiyat,

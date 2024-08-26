@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/cubits/sepetCubit.dart';
 import 'package:foodie_hub/cubits/siparisCubit.dart';
+import 'package:foodie_hub/cubits/adresCubit.dart'; // AdresCubit'i ekleyin
 import 'package:foodie_hub/entity/sepet.dart';
-
 
 class SepetSayfa extends StatefulWidget {
   const SepetSayfa({super.key});
@@ -16,12 +16,32 @@ class SepetSayfa extends StatefulWidget {
 class _SepetSayfaState extends State<SepetSayfa> {
   var refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
 
+  String adres = "";
 
+  @override
+  void initState() {
+    super.initState();
+    _adresGetir();
+  }
+
+  Future<void> _adresGetir() async {
+    var adresCubit = context.read<AdresCubit>();
+
+
+    await adresCubit.adresleriYukle();
+
+
+    var adresler = adresCubit.state;
+    if (adresler.isNotEmpty) {
+      setState(() {
+        adres = adresler.first.adres;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-
-    void _showSnackBar() {
+    void showSnackBar() {
       const snackBar = SnackBar(
         content: Text('Siparişiniz başarıyla verildi!'),
         backgroundColor: Colors.green,
@@ -31,18 +51,16 @@ class _SepetSayfaState extends State<SepetSayfa> {
 
     context.read<SepetCubit>().sepetiYukle();
 
-
-
     return Scaffold(
       appBar: AppBar(
-        title:const Text(
+        title: const Text(
           'Sepetim',
           style: TextStyle(color: Colors.black),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.deepOrange, Colors.orange ,Colors.orangeAccent], // Gradient renkleri
+              colors: [Colors.deepOrange, Colors.orange, Colors.orangeAccent], // Gradient renkleri
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -52,12 +70,10 @@ class _SepetSayfaState extends State<SepetSayfa> {
       ),
       body: BlocBuilder<SepetCubit, List<Sepet>>(
         builder: (context, sepetUrunleri) {
-          // Eğer sepet boşsa, kullanıcıya bilgilendirme göster
           if (sepetUrunleri.isEmpty) {
             return const Center(child: Text('Sepetiniz boş'));
           }
 
-          // Eğer sepet doluysa, ürünleri listele
           return ListView.builder(
             itemCount: sepetUrunleri.length,
             itemBuilder: (context, index) {
@@ -77,7 +93,6 @@ class _SepetSayfaState extends State<SepetSayfa> {
                             child: Image.asset(urun.urunResim.toLowerCase()),
                           ),
                           const Spacer(),
-
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
@@ -90,7 +105,6 @@ class _SepetSayfaState extends State<SepetSayfa> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: IconButton(
                                     icon: const Icon(Icons.remove_shopping_cart),
-
                                     onPressed: () {
                                       showDialog(
                                         context: context,
@@ -141,9 +155,9 @@ class _SepetSayfaState extends State<SepetSayfa> {
 
             var sepetUrunleri = sepetCubit.state; // Sepetteki ürünler
 
-            siparisCubit.siparisEkle(sepetUrunleri); // Siparişe çevir ve kaydet
+            siparisCubit.siparisEkle(sepetUrunleri, adres); // Siparişe çevir ve kaydet
           });
-          _showSnackBar();
+          showSnackBar();
         },
         child: const Icon(Icons.assignment_return_outlined, color: Colors.white),
       ),

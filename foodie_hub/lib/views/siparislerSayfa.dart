@@ -46,9 +46,43 @@ class _SiparisSayfaState extends State<SiparisSayfa> {
             itemCount: siparisler.length,
             itemBuilder: (context, index) {
               final siparis = siparisler[index];
+              final ilkUrun = siparis.urunler.isNotEmpty ? siparis.urunler[0] : {}; // İlk ürüne erişim
 
               return ExpansionTile(
-                title: Text('Sipariş ID: ${siparis.siparisId}'),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Sipariş: ${ilkUrun['urunAd'] ?? 'Ürün Adı'}'), // İlk ürünün adı
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Siparişi silmek için onay diyaloğu ekleyebilirsiniz
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Siparişi Sil'),
+                            content: Text('Bu siparişi silmek istediğinizden emin misiniz?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  context.read<SiparisCubit>().siparisiSil(siparis.siparisId);
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Evet'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Hayır'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
                 children: [
                   ListView.builder(
                     shrinkWrap: true,
@@ -69,6 +103,10 @@ class _SiparisSayfaState extends State<SiparisSayfa> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text('Sipariş Tarihi: ${siparis.siparisTarihi}'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text('Teslimat Adresi: ${siparis.adres ?? 'Adres belirtilmemiş'}'),
                   ),
                 ],
               );

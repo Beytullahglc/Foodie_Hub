@@ -2,21 +2,21 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:foodie_hub/entity/sepet.dart';
 import 'package:foodie_hub/entity/siparisler.dart';
-import 'package:foodie_hub/repo/urunlerdao_repository.dart';
 
+class SiparisCubit extends Cubit<List<Siparisler>> {
+  SiparisCubit() : super([]);
 
-class SiparisCubit extends Cubit<List<Siparisler>>{
-  SiparisCubit () : super([]);
-
-  final UrunlerDaoRepository urepo = UrunlerDaoRepository();
   final refUrunler = FirebaseDatabase.instance.ref().child("urunler_tablo");
   final refSepet = FirebaseDatabase.instance.ref().child("sepet_tablo");
   final refSiparis = FirebaseDatabase.instance.ref().child("siparisler_tablo");
 
+  Future<void> siparisiSil(String siparisId) async {
+    await refSiparis.child(siparisId).remove();
+    await siparisleriYukle(); // Listeyi güncellemek için tekrar yükleme yapılır
+  }
 
-  Future<void> siparisEkle(List<Sepet> sepetUrunleri) async {
+  Future<void> siparisEkle(List<Sepet> sepetUrunleri, String? teslimatAdres) async {
     if (sepetUrunleri.isNotEmpty) {
-      // Ürün isimlerini, adetlerini ve toplam tutarı hesaplayalım
       List<Map<String, dynamic>> urunBilgileri = [];
       double toplamTutar = 0;
 
@@ -30,38 +30,41 @@ class SiparisCubit extends Cubit<List<Siparisler>>{
       }
 
       var siparisBilgisi = <String, dynamic>{
-        "siparisId": "", // ID Firebase tarafından atanacak
-        "urunler": urunBilgileri, // Ürün adları ve adetleri ile birlikte
+        "siparisId": "",
+        "urunler": urunBilgileri,
         "toplamTutar": toplamTutar,
         "siparisTarihi": DateTime.now().toString(),
+        "adres": teslimatAdres ?? 'Adres belirtilmemiş', // Adres ekleme
       };
 
       await refSiparis.push().set(siparisBilgisi);
 
-      // Sipariş eklendikten sonra sepeti temizleyin
       for (var urun in sepetUrunleri) {
-        await FirebaseDatabase.instance.ref().child("sepet_tablo").child(urun.sepetId).remove();
+        await FirebaseDatabase.instance
+            .ref()
+            .child("sepet_tablo")
+            .child(urun.sepetId)
+            .remove();
       }
     }
   }
 
   Future<void> siparisleriYukle() async {
-    try {
-      final snapshot = await refSiparis.once();
-      final gelenDegerler = snapshot.snapshot.value;
+    refSiparis.onValue.listen((event) {
+      var gelenDegerler = event.snapshot.value as Map<dynamic, dynamic>?;
 
-      if (gelenDegerler != null && gelenDegerler is Map<dynamic, dynamic>) {
-        final siparisListesi = gelenDegerler.entries
-            .map((entry) => Siparisler.fromJson(entry.key, entry.value))
-            .toList();
-
-        emit(siparisListesi);
-      } else {
-        emit([]);
-        print("Beklenmeyen veri formatı: $gelenDegerler");
+      if (gelenDegerler != null) {
+        var siparisListe = <Siparisler>[];
+        gelenDegerler.forEach((key, nesne) {
+          try {
+            var siparis = Siparisler.fromJson(key, Map<String, dynamic>.from(nesne));
+            siparisListe.add(siparis);
+          } catch (e) {
+            print("Hata: $e");
+          }
+        });
+        emit(siparisListe);
       }
-    } catch (e) {
-      print('Hata oluştu: $e');
-    }
+    });
   }
 }
